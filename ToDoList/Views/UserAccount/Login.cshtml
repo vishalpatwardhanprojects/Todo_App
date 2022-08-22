@@ -1,0 +1,59 @@
+﻿@model ToDoList.ViewModel.Login
+@{
+    ViewBag.Title = "Login";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        #centeralign {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) !important;
+            width: 300px;
+            height: auto;
+            margin: auto;
+            border: 1px solid #858585;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="centeralign">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-white">
+                    <div class="table-responsive">
+                        <div id="ctrlGrid1Panel">
+                            @using (Html.BeginForm())
+                            {
+                                @Html.AntiForgeryToken()
+                                <div class="form-group">
+                                    @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "Username" })
+                                    @Html.ValidationMessageFor(m => m.Username, "")
+                                </div>
+                                <div class="form-group">
+                                    @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Password" })
+                                    @Html.ValidationMessageFor(m => m.Password, "")
+                                </div>
+                                @Html.ValidationSummary(true, "", new { @class = "" })
+                                <button type="submit" class="btn btn-success btn-block">Login</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="~/Scripts/bootstrap.min.js"></script>
+</body>
+</html>

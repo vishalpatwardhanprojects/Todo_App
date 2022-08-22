@@ -1,0 +1,456 @@
+﻿@model ToDoList.ViewModel.TodoViewModel
+@{
+    ViewBag.Title = "List";
+    WebGrid webGrid;
+    webGrid = new WebGrid(Model.TodoListDetails, rowsPerPage: 10, canPage: false, canSort: false);
+    int RowNum = 0;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    @*<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>*@
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    @*<script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>*@
+    <style>
+        #centeralign {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) !important;
+            width: 70%;
+            height: auto;
+            margin: auto;
+            /*border: 1px solid #858585;*/
+            padding: 15px;
+        }
+        @@media(max-width:480px){
+            #centeralign {
+                position: relative;
+                width: 100%;
+                height: auto;
+                margin: auto;
+                top: 329px;
+                /*border: 1px solid #858585;*/
+                padding: 15px;
+                overflow: auto;
+                margin-top: 190px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <input type="hidden" id="hdfUserID" value="@Model.UserID" />
+    <div id="EditTaskModal" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="position: static;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: cornflowerblue;color: white">
+                    <label>Update Task</label>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="hidden" id="hdfUpdateTaskID" />
+                            @Html.LabelFor(m => m.TodoDetails.TaskName)
+                            @Html.TextBox("TaskName", "", new { @class = "form-control"})
+                        </div>
+                        <div class="col-md-6">
+                            @Html.Label("Update Description")
+                            @Html.TextBox("Description", "", new { @class = "form-control"})
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-md-6" style="padding-left:0px">
+                                <label id="EditCreatedBy">Created By :</label>
+                            </div>
+                            <div class="col-md-6">
+                                <label id="EditCreatedDate"> Created Date : </label>
+                                
+                            </div>
+                        </div>
+                    </div><br>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-md-6" style="padding-left:0px">
+                                <label id="EditModifiedBy">Modified By : </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label  id="EditModifiedDate"> Modified Date : </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" style="margin-bottom:10px;margin-top: 10px;height: 30px;" id="btnUpdateTask">Update</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="btnModalPopClose1" style="margin-left:15px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="RemoveTaskModal" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="position: static;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: cornflowerblue;color: white">
+                    <label>Remove Task</label>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="hidden" id="hdfRemoveTaskID" />
+                            @Html.LabelFor(m => m.TodoDetails.TaskName)
+                            @Html.TextBox("TaskName", "", new {@id="RTaskName", @class = "form-control" ,@disabled="true" })
+                        </div>
+                        <div class="col-md-6">
+                            @Html.Label("Remove Description")
+                            @Html.TextBox("Description", "", new { @id = "RTaskDesc", @class = "form-control" })
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-md-6" style="padding-left:0px">
+                                <label id="RemoveCreatedBy">Created By :</label>
+                            </div>
+                            <div class="col-md-6">
+                                <label id="RemoveCreatedDate"> Created Date : </label>
+
+                            </div>
+                        </div>
+                    </div><br>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-md-6" style="padding-left:0px">
+                                <label id="RemoveModifiedBy">Modified By : </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label id="RemoveModifiedDate"> Modified Date : </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" style="margin-bottom:10px;margin-top: 10px;height: 30px;" id="btnConfirmRemoveTask">Remove</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="btnModalPopClose1" style="margin-left:15px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="AddTaskModal" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="position: static;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: cornflowerblue;color: white">
+                    <label>Add Task</label>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.TodoDetails.TaskName)
+                            @Html.TextBox("TaskName", "", new {@id="NewTask", @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" style="margin-bottom:10px;margin-top: 10px;height: 30px;" id="btnAddTask">Save</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="btnModalPopClose1" style="margin-left:15px;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="centeralign">
+            @{
+                string HTML = webGrid.Table(
+            headerStyle: "Header",
+            footerStyle: null,
+            alternatingRowStyle: "even",
+            selectedRowStyle: null,
+            rowStyle: "odd",
+            caption: null,
+            displayHeader: true,
+            fillEmptyRows: false,
+            emptyRowCellValue: null,
+            htmlAttributes: new { @id= "TodoGrid", @class = "display table dataTable", style = "width: 100%; cellspacing: 0;margin-top:0px;overflow:auto" },
+            columns:
+            webGrid.Columns(
+            webGrid.Column((""), format:
+            @<text>
+                @{
+                    RowNum = RowNum + 1;
+                }
+                <input type="checkbox" id="isChecked" title="check"class="btnCheck" name="isChecked" checked="@Model.TodoListDetails[RowNum - 1].IsChecked" value=@Model.TodoListDetails[RowNum - 1].IsChecked />
+            </text>, canSort: false),
+                webGrid.Column((""), format:
+                @<text>
+                    <div class="col-md-1">
+                        <a data-target="#EditTaskModal"
+                           data-toggle="modal" role="dialog" style="cursor:pointer;" title="Edit Task">
+                            <i id="@Model.TodoListDetails[RowNum - 1].TaskID" class="fa fa-pencil btnEditTask" title="Edit"></i>
+                        </a>
+                    </div>
+                    @*<a id="EditTask" style="cursor:pointer;"><i class="fa fa-pencil" title="Edit"></i></a>
+                @Html.HiddenFor(m => m.TodoListDetails[RowNum - 1].TaskID, new { id = "ClientLocationID" })*@
+                </text>, canSort: false),
+                webGrid.Column(("Sr. No."), format:
+                @<text>
+                    @RowNum
+                </text>, canSort: false),
+                webGrid.Column("Task Name", format:
+                @<text>
+                    @Html.DisplayFor(m => m.TodoListDetails[RowNum - 1].TaskName)
+                </text>, canSort: false),
+                webGrid.Column("Created User", format:
+                @<text>
+                    @Html.DisplayFor(m => m.TodoListDetails[RowNum - 1].CreatedUser)
+                </text>, canSort: false),
+                webGrid.Column("Created Date", format:
+                @<text>
+                    @Html.DisplayFor(m => m.TodoListDetails[RowNum - 1].CreatedDate)
+                </text>, canSort: false),
+                webGrid.Column("Modified User", format:
+                @<text>
+                    @Html.DisplayFor(m => m.TodoListDetails[RowNum - 1].ModifiedUser)
+                </text>, canSort: false),
+                webGrid.Column("Modified Date", format:
+                @<text>
+                    @Html.DisplayFor(m => m.TodoListDetails[RowNum - 1].ModifiedDate)
+                </text>, canSort: false),
+                webGrid.Column("Modified Desc", format:
+                @<text>
+                    @Html.DisplayFor(m => m.TodoListDetails[RowNum - 1].ModifiedDesc)
+                </text>, canSort: false),
+                    webGrid.Column((""), format:
+                    @<text>
+                        <a data-target="#RemoveTaskModal" data-toggle="modal" role="dialog" id="Delete_@Model.TodoListDetails[RowNum - 1].TaskID" style="cursor:pointer;" class="btnRemoveTask"><i class="fa fa-trash-o" title="Remove"></i></a>
+                    </text>, canSort: false)
+                )).ToString();
+                    @MvcHtmlString.Create(HTML);
+                    
+            }
+            <div class="row">
+                <div class="col-md-12">
+                    <button data-target="#AddTaskModal" data-toggle="modal" role="dialog" style="cursor:pointer;" title="Add Task" type="button" class="btn btn-primary" style="margin-bottom:10px;margin-top: 10px;height: 30px;" id="btnAddTask">Add Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    @*<script src="~/Scripts/jquery-3.1.1.js"></script>*@
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <style>
+        .Header {
+            background-color: #e2e2e2;
+            width: 100%;
+        }
+
+            .Header a {
+                font-family: 'Roboto', sans-serif !important;
+                font-size: 14px;
+                color: #4E5E6A;
+            }
+    </style>
+    <script>
+
+        $(".btnEditTask").click(function(){
+            debugger;
+            var ListIndex = $(this).attr("id");
+            $("#spinner").show();
+            $.ajax({
+                async: false,
+                cache: false,
+                type: "POST",
+                url: "GetTask",
+                data: { listIndex: ListIndex },
+                success: function (response) {
+                    debugger;
+                    $("#spinner").hide();
+                    $('#TaskName').val(response.TodoDetails.TaskName);
+                    $('#Desc').val(response.TodoDetails.ModifiedDesc);
+                    $('#hdfUpdateTaskID').val(response.TodoDetails.TaskID);
+
+                    var createdby = response.TodoDetails.CreatedUser == null ? "" : response.TodoDetails.CreatedUser;
+                    var createddate = response.TodoDetails.CreatedDate == null ? "" : formattedDateFromJson(response.TodoDetails.CreatedDate);
+                    var modifiedby = response.TodoDetails.ModifiedUser == null ? "" : response.TodoDetails.ModifiedUser;
+                    var modifieddate = response.TodoDetails.ModifiedDate == null ? "" : formattedDateFromJson(response.TodoDetails.ModifiedDate);
+                    $('#EditCreatedBy').html("Created By : " +createdby );
+                    $('#EditCreatedDate').html("Created Date : " + createddate);
+                    $('#EditModifiedBy').html("Modified By : " + modifiedby);
+                    $('#EditModifiedDate').html("Modified Date : " + modifieddate);
+                },
+                error: function (error) {
+                    debugger;
+                    $('#spinner').hide();
+                    alert("Error while getting Update Task Popup");
+                }
+            });
+        });
+
+        function formattedDateFromJson(jsonDate) {
+            var d = new Date(parseInt(jsonDate.substr(6)));
+            return ("0" + d.getDate()).slice(-2) + '/' + ("0" + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear();
+        }
+
+        $("#btnUpdateTask").click(function () {
+            debugger;
+            $("#spinner").show();
+            var ListIndex = $("#hdfUpdateTaskID").val();
+            var Taskname = $("#TaskName").val();
+            var Descp = $("#Description").val();
+            $.ajax({
+                async: false,
+                cache: false,
+                type: "POST",
+                url: "UpdateTask",
+                data: { listIndex: ListIndex, TaskName: Taskname, Desc: Descp },
+                success: function (response) {
+                    debugger;
+                    if (response)
+                    {
+                        location.reload();
+                    }
+                    else {
+                        alert("Error while getting Update Task Popup");
+                    }
+                },
+                error: function (error) {
+                    debugger;
+                    $('#spinner').hide();
+                    alert("Error while getting Update Task Popup");
+                }
+            });
+        });
+
+        $(".btnCheck").change(function () {
+            debugger;
+            $("#spinner").show();
+            var ListIndex = $(this).closest("tr").find("td .btnEditTask").attr('id')
+            var IsCheck = $(this).prop('checked');
+            $.ajax({
+                async: false,
+                cache: false,
+                type: "POST",
+                url: "IsCheck",
+                data: { listIndex: ListIndex, isCheck: IsCheck },
+                success: function (response) {
+                    debugger;
+                    if (response) {
+                        location.reload();
+                    }
+                    else {
+                        alert("Error while checking the Task Popup");
+                    }
+                },
+                error: function (error) {
+                    debugger;
+                    $('#spinner').hide();
+                    alert("Error while checking the Task Popup");
+                }
+            });
+        });
+
+        $("#btnAddTask").click(function () {
+            debugger;
+            $("#spinner").show();
+            var taskname = $("#NewTask").val();
+            $.ajax({
+                async: false,
+                cache: false,
+                type: "POST",
+                url: "AddTask",
+                data: { TaskName: taskname },
+                success: function (response) {
+                    debugger;
+                    if (response) {
+                        location.reload();
+                    }
+                    else {
+                        alert("Error while adding the Task Popup");
+                    }
+                },
+                error: function (error) {
+                    debugger;
+                    $('#spinner').hide();
+                    alert("Error while adding Adding Task Popup");
+                }
+            });
+        });
+
+        $(".btnRemoveTask").click(function () {
+            debugger;
+            $("#spinner").show();
+            var ListIndex = $(this).closest("tr").find("td .btnEditTask").attr('id')
+            $.ajax({
+                async: false,
+                cache: false,
+                type: "POST",
+                url: "GetTask",
+                data: { listIndex: ListIndex },
+                success: function (response) {
+                    debugger;
+                    $('#RTaskName').val(response.TodoDetails.TaskName);
+                    $('#RTaskDesc').val(response.TodoDetails.ModifiedDesc);
+                    $('#hdfRemoveTaskID').val(response.TodoDetails.TaskID);
+
+                    var createdby = response.TodoDetails.CreatedUser == null ? "" : response.TodoDetails.CreatedUser;
+                    var createddate = response.TodoDetails.CreatedDate == null ? "" : formattedDateFromJson(response.TodoDetails.CreatedDate);
+                    var modifiedby = response.TodoDetails.ModifiedUser == null ? "" : response.TodoDetails.ModifiedUser;
+                    var modifieddate = response.TodoDetails.ModifiedDate == null ? "" : formattedDateFromJson(response.TodoDetails.ModifiedDate);
+                    $('#RemoveCreatedBy').html("Created By : " + createdby);
+                    $('#RemoveCreatedDate').html("Created Date : " + createddate);
+                    $('#RemoveModifiedBy').html("Modified By : " + modifiedby);
+                    $('#RemoveModifiedDate').html("Modified Date : " + modifieddate);
+
+                    $("#spinner").hide();
+                },
+                error: function (error) {
+                    debugger;
+                    $('#spinner').hide();
+                    alert("Error while getting Remove Task Popup");
+                }
+            });
+        });
+
+        $("#btnConfirmRemoveTask").click(function () {
+            debugger;
+            $("#spinner").show();
+            var ListIndex = $("#hdfRemoveTaskID").val();
+            var Descp = $("#RTaskDesc").val();
+            $.ajax({
+                async: false,
+                cache: false,
+                type: "POST",
+                url: "RemoveTask",
+                data: { listIndex: ListIndex, Desc: Descp },
+                success: function (response) {
+                    debugger;
+                    if (response) {
+                        location.reload();
+                    }
+                    else {
+                        alert("Error while Removing the Task Popup");
+                    }
+                },
+                error: function (error) {
+                    debugger;
+                    $('#spinner').hide();
+                    alert("Error while getting Remove Task Popup");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
